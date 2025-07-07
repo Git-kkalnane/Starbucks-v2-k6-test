@@ -1,0 +1,10 @@
+{
+  "name": "k6-test-postprocess",
+  "version": "1.0.0",
+  "description": "k6 결과를 CSV/Markdown 리포트로 자동 변환하는 postprocess 스크립트",
+  "main": "postprocess-k6.js",
+  "scripts": {
+    "postk6": "node postprocess-k6.js k6-loadtest-result.json"
+  },
+  "dependencies": {}
+}
