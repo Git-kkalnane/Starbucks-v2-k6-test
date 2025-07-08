@@ -55,8 +55,12 @@ node ./test_code/order_GET_items/postprocess-k6-order-menu-parallel-result.js k6
 병렬 스레스 테스트
 
 ```
-k6 run test_code/order_GET_items/k6-order-menu-parallel-stress.js --out json=output.json
+k6 run scenario_stress/order_GET_items/k6-order-menu-parallel-stress.js --out json=scenario_stress/order_GET_items/k6-order-menu-parallel-stress-result.json
+
+// analyze-status-vu-error-per-interval.js 사용 코드
+node ./scenario_stress/order_GET_items/analyze-status-vu-error-per-interval.js
+
 
 // analyze-waiting-advanced.js 사용 코드
-node ./test_code/order_GET_items/analyze-waiting-advanced.js
+node ./scenario_stress/order_GET_items/analyze-waiting-advanced.js
 ```
