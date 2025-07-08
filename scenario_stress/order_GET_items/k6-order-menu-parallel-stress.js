@@ -56,16 +56,16 @@ function makeOrderPayload(email, idx) {
 export default function () {
   const idx = (__VU - 1) % tokens.length;
   const { email, accessToken } = tokens[idx];
-
-  // 1. 주문 API는 각 VU가 1번씩 반드시 호출
-  const orderPayload = makeOrderPayload(email, idx + 1);
-  const orderParams = {
+  const AUTH_HEADER = {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken}`,
     },
   };
-  let orderRes = http.post(ORDER_URL, orderPayload, { ...orderParams, tags: { vu: __VU } });
+
+  // 1. 주문 API는 각 VU가 1번씩 반드시 호출
+  const orderPayload = makeOrderPayload(email, idx + 1);
+  let orderRes = http.post(ORDER_URL, orderPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
   check(orderRes, {
     "order status was 200": (r) => r.status === 200,
   });
@@ -79,4 +79,45 @@ export default function () {
     check(res2, { "dessert 200": (r) => r.status === 200 });
     sleep(0.1);
   }
+
+  // 3. 카트 시나리오 - 아이템 추가, 수량 변경, 삭제, 조회
+  // (id, cartItemId 등은 VU별로 고유하게 생성)
+  const cartItemId = __VU * 100 + idx;
+  const addPayload = JSON.stringify({
+    id: cartItemId,
+    itemId: 101,
+    image: "https://cdn.starbucks.com/item123.jpg",
+    itemType: "BEVERAGE",
+    temperatureOption: "HOT",
+    cartItemOptions: [
+      { id: 1, cartItemId: cartItemId, itemOptionId: 1, quantity: 2, itemOptionName: "샷 추가" },
+      { id: 2, cartItemId: cartItemId, itemOptionId: 2, quantity: 1, itemOptionName: "휘핑 추가" }
+    ],
+    cupSize: "GRANDE",
+    quantity: 1,
+    priceWithOptions: 6300
+  });
+  let addRes = http.post(`${BASE_URL}/carts/addItem`, addPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  check(addRes, { "cart add 200": (r) => r.status === 200 });
+
+  // 수량 변경(5로)
+  const modifyPayload = JSON.stringify({
+    cartItemId: cartItemId,
+    changeQuantity: 5
+  });
+  let modRes = http.put(`${BASE_URL}/carts/modifyItem`, modifyPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  check(modRes, { "cart mod 200": (r) => r.status === 200 });
+
+  // 아이템 삭제
+  const delPayload = JSON.stringify({
+    cartItemId: [cartItemId]
+  });
+  let delRes = http.del(`${BASE_URL}/carts/deleteItem`, delPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  check(delRes, { "cart del 200": (r) => r.status === 200 });
+
+  // 카트 조회
+  let getRes = http.get(`${BASE_URL}/carts`, { ...AUTH_HEADER, tags: { vu: __VU } });
+  check(getRes, { "cart get 200": (r) => r.status === 200 });
+
+  sleep(0.3);
 }

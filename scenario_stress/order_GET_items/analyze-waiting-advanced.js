@@ -138,7 +138,21 @@ async function analyzeWaitingAdvanced() {
     md += `\n### [호출순서별 평균]`;
     md += `\n| 호출 시작 | 호출 끝 | 평균(ms) | 개수 |`;
     md += `\n|------|------|----------|-----|`;
-    md += `\n(자세한 데이터는 waiting-batch.csv 참고)`;
+    // 호출순서별 평균 채우기
+    const batchCsvLines = fs.readFileSync(path.join(reportsDir, "waiting-batch.csv"), "utf-8").trim().split(/\r?\n/);
+    const batchCsvLinesByUrl = {};
+    for (const line of batchCsvLines.slice(1)) {
+      const [url, start_idx, end_idx, avg_ms, count] = line.split(",");
+      if (!batchCsvLinesByUrl[url]) batchCsvLinesByUrl[url] = [];
+      batchCsvLinesByUrl[url].push({start_idx, end_idx, avg_ms, count});
+    }
+    if (batchCsvLinesByUrl[url] && batchCsvLinesByUrl[url].length > 0) {
+      for (const b of batchCsvLinesByUrl[url]) {
+        md += `\n| ${b.start_idx} | ${b.end_idx} | ${b.avg_ms} | ${b.count} |`;
+      }
+    } else {
+      md += `\n(자세한 데이터는 waiting-batch.csv 참고)`;
+    }
     md += `\n\n### [시간대별 평균]`;
     md += `\n| 시작 시각 | 끝 시각 | 평균(ms) | 개수 |`;
     md += `\n|------|------|----------|-----|`;
