@@ -1,0 +1,29 @@
+[
+  {
+    "itemId": 201,
+    "itemType": "DESSERT",
+    "quantity": 3,
+    "shotQuantity": null,
+    "selectedSizes": null,
+    "selectedTemperatures": null,
+    "options": []
+  },
+  {
+    "itemId": 202,
+    "itemType": "DESSERT",
+    "quantity": 2,
+    "shotQuantity": null,
+    "selectedSizes": null,
+    "selectedTemperatures": null,
+    "options": []
+  },
+  {
+    "itemId": 203,
+    "itemType": "DESSERT",
+    "quantity": 1,
+    "shotQuantity": null,
+    "selectedSizes": null,
+    "selectedTemperatures": null,
+    "options": []
+  }
+]

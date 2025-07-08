@@ -1,0 +1,39 @@
+[
+  {
+    "itemId": 101,
+    "itemType": "COFFEE",
+    "quantity": 1,
+    "shotQuantity": 1,
+    "selectedSizes": "SOLO",
+    "selectedTemperatures": "HOT",
+    "options": []
+  },
+  {
+    "itemId": 102,
+    "itemType": "COFFEE",
+    "quantity": 1,
+    "shotQuantity": 1,
+    "selectedSizes": "TALL",
+    "selectedTemperatures": "ICE",
+    "options": [
+      {
+        "itemOptionId": 1,
+        "quantity": 1
+      }
+    ]
+  },
+  {
+    "itemId": 105,
+    "itemType": "COFFEE",
+    "quantity": 1,
+    "shotQuantity": 1,
+    "selectedSizes": "TALL",
+    "selectedTemperatures": "HOT",
+    "options": [
+      {
+        "itemOptionId": 2,
+        "quantity": 2
+      }
+    ]
+  }
+]
