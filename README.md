@@ -1,39 +1,42 @@
-# k6 자동 리포트/CSV 생성 가이드
+# k6 테스트 가이드
 
-## 사용 방법
+테스트를 하기전에 꼭 서버를 준비해 주세요 localhost:8080
 
-1. **k6 테스트 실행**
+## 사용법
 
-```bash
-k6 run k6-loadtest.js --out json=k6-loadtest-result.json
+### 테스트를 위한 준비 설정 ( K6 명령어 아님)
+
+```base
+// 원하는 수 만큼 계정 생성
+node ./ready/auth/signup-generate-users.js 500
+
+
+// 토큰 생성 시 원하는 계정 수 지정,
+ node ./ready/auth/generate-tokens.js 500
 ```
 
-2. **자동 리포트/CSV 생성**
+### 테스트 목록
 
-```bash
-npm run postk6
-```
-- 또는 직접 실행: `node postprocess-k6.js k6-loadtest-result.json`
+주문하기 로직
 
-3. **생성 파일**
-- `k6-loadtest-result.csv`: 엑셀 분석용 CSV
-- `k6-loadtest-result-report.md`: Markdown 포맷 리포트
+```base
+// 횟수 500명 유저가 30초 동안 500
+k6 run --vus 500 --duration 30s ./test_code/order/k6-order-post.js --out json=./test_code/order/k6-order-post-result.json
 
----
+// 횟수 500명 유저가 500회 실행
+k6 run --env VUS=500 --env ITERATIONS=500 --out json=./test_code/order/k6-order-post-result.json ./test_code/order/k6-order-post.js
 
-## 자동화 (선택)
-- k6 실행 후 후처리까지 자동화하려면 아래처럼 한 줄로 쓸 수 있습니다:
+// 결과 보기
+node ./test_code/order/postprocess-k6-order-result.js
 
-```bash
-k6 run k6-loadtest.js --out json=k6-loadtest-result.json && npm run postk6
 ```
 
----
+카드 추가 로직
 
-## Node.js 필요
-- postprocess-k6.js는 Node.js 환경에서 동작합니다 (추가 패키지 설치 불필요)
+```
+// 500명 유저가 500회 실행
+k6 run --env VUS=500 --env ITERATIONS=500 --out json=./test_code/cart/k6-cart-add-item-result.json ./test_code/cart/k6-cart-add-item.js
 
----
-
-## 참고
-- 더 다양한 리포트 포맷(HTML, PDF 등)이 필요하면 말씀해 주세요!
+// 결과 보기
+node ./test_code/cart/postprocess-k6-cart-add-item-result.js
+```
