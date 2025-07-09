@@ -3,11 +3,11 @@ import { check, sleep } from "k6";
 
 export let options = {
   stages: [
-    { duration: '1m', target: 100 },   // 1분간 100VU까지 증가
-    { duration: '2m', target: 500 },   // 2분간 500VU까지 증가
-    { duration: '2m', target: 1000 },  // 2분간 1000VU까지 증가
-    { duration: '2m', target: 2000 },  // 2분간 2000VU까지 증가
-    { duration: '2m', target: 0 },     // 2분간 0VU로 감소(정리)
+    { duration: "1m", target: 100 }, // 1분간 100VU까지 증가
+    { duration: "2m", target: 500 }, // 2분간 500VU까지 증가
+    { duration: "2m", target: 1000 }, // 2분간 1000VU까지 증가
+    { duration: "2m", target: 2000 }, // 2분간 2000VU까지 증가
+    { duration: "2m", target: 0 }, // 2분간 0VU로 감소(정리)
   ],
 };
 
@@ -65,7 +65,10 @@ export default function () {
 
   // 1. 주문 API는 각 VU가 1번씩 반드시 호출
   const orderPayload = makeOrderPayload(email, idx + 1);
-  let orderRes = http.post(ORDER_URL, orderPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  let orderRes = http.post(ORDER_URL, orderPayload, {
+    ...AUTH_HEADER,
+    tags: { vu: __VU },
+  });
   check(orderRes, {
     "order status was 200": (r) => r.status === 200,
   });
@@ -82,42 +85,81 @@ export default function () {
 
   // 3. 카트 시나리오 - 아이템 추가, 수량 변경, 삭제, 조회
   // (id, cartItemId 등은 VU별로 고유하게 생성)
-  const cartItemId = __VU * 100 + idx;
-  const addPayload = JSON.stringify({
-    id: cartItemId,
+  // const cartItemId = __VU * 100 + idx;
+  const addCartItemPayload = JSON.stringify({
+    id: null,
     itemId: 101,
     image: "https://cdn.starbucks.com/item123.jpg",
     itemType: "BEVERAGE",
     temperatureOption: "HOT",
     cartItemOptions: [
-      { id: 1, cartItemId: cartItemId, itemOptionId: 1, quantity: 2, itemOptionName: "샷 추가" },
-      { id: 2, cartItemId: cartItemId, itemOptionId: 2, quantity: 1, itemOptionName: "휘핑 추가" }
+      {
+        id: 1,
+        cartItemId: null,
+        itemOptionId: 1,
+        quantity: 2,
+        itemOptionName: "샷 추가",
+      },
+      {
+        id: 2,
+        cartItemId: null,
+        itemOptionId: 2,
+        quantity: 1,
+        itemOptionName: "휘핑 추가",
+      },
     ],
     cupSize: "GRANDE",
     quantity: 1,
-    priceWithOptions: 6300
+    priceWithOptions: 6300,
   });
-  let addRes = http.post(`${BASE_URL}/carts/addItem`, addPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  let addRes = http.post(`${BASE_URL}/carts/addItem`, addCartItemPayload, {
+    ...AUTH_HEADER,
+    tags: { vu: __VU },
+  });
   check(addRes, { "cart add 200": (r) => r.status === 200 });
 
-  // 수량 변경(5로)
-  const modifyPayload = JSON.stringify({
-    cartItemId: cartItemId,
-    changeQuantity: 5
+  // 카트 조회
+  let getCartRes = http.get(`${BASE_URL}/carts`, {
+    ...AUTH_HEADER,
+    tags: { vu: __VU },
   });
-  let modRes = http.put(`${BASE_URL}/carts/modifyItem`, modifyPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  check(getCartRes, { "cart get 200": (r) => r.status === 200 });
+
+  sleep(0.3);
+
+  let cartJson = getCartRes.json();
+  let currentCartItemId = 1;
+  if (
+    cartJson &&
+    cartJson.result &&
+    Array.isArray(cartJson.result.cartItemDto) &&
+    cartJson.result.cartItemDto.length > 0 &&
+    cartJson.result.cartItemDto[0].cartItemId
+  ) {
+    currentCartItemId = cartJson.result.cartItemDto[0].cartItemId;
+  } else {
+    // 응답이 예상과 다를 때 기본값 또는 에러 처리
+    // console.warn('카트 응답에 cartItemId가 없습니다:', JSON.stringify(cartJson));
+  }
+
+  // 수량 변경(5로)
+  const modifyCartItemPayload = JSON.stringify({
+    cartItemId: currentCartItemId,
+    changeQuantity: 5,
+  });
+  let modRes = http.put(`${BASE_URL}/carts/modifyItem`, modifyCartItemPayload, {
+    ...AUTH_HEADER,
+    tags: { vu: __VU },
+  });
   check(modRes, { "cart mod 200": (r) => r.status === 200 });
 
   // 아이템 삭제
-  const delPayload = JSON.stringify({
-    cartItemId: [cartItemId]
+  const delCartItemPayload = JSON.stringify({
+    cartItemId: [currentCartItemId],
   });
-  let delRes = http.del(`${BASE_URL}/carts/deleteItem`, delPayload, { ...AUTH_HEADER, tags: { vu: __VU } });
+  let delRes = http.del(`${BASE_URL}/carts/deleteItem`, delCartItemPayload, {
+    ...AUTH_HEADER,
+    tags: { vu: __VU },
+  });
   check(delRes, { "cart del 200": (r) => r.status === 200 });
-
-  // 카트 조회
-  let getRes = http.get(`${BASE_URL}/carts`, { ...AUTH_HEADER, tags: { vu: __VU } });
-  check(getRes, { "cart get 200": (r) => r.status === 200 });
-
-  sleep(0.3);
 }
