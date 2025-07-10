@@ -39,4 +39,28 @@ k6 run --env VUS=500 --env ITERATIONS=500 --out json=./test_code/cart/k6-cart-ad
 
 // 결과 보기
 node ./test_code/cart/postprocess-k6-cart-add-item-result.js
+
+```
+
+주문하기와 아이템 조회 병렬로 실행
+
+```
+// 최소 100번 주문하기와 아이템과 디저트 병렬로 조회
+k6 run --env VUS=100 --env ITERATIONS=100 --out json=./test_code/order_GET_items/k6-order-menu-parallel-result.json ./test_code/order_GET_items/k6-order-menu-parallel.js
+
+node ./test_code/order_GET_items/postprocess-k6-order-menu-parallel-result.js k6-order-menu-parallel-result.json
+
+```
+
+병렬 스레스 테스트
+
+```
+k6 run scenario_stress/order_GET_items/k6-order-menu-parallel-stress.js --out json=scenario_stress/order_GET_items/k6-order-menu-parallel-stress-result.json
+
+// analyze-status-vu-error-per-interval.js 사용 코드
+node ./scenario_stress/order_GET_items/analyze-status-vu-error-per-interval.js
+
+
+// analyze-waiting-advanced.js 사용 코드
+node ./scenario_stress/order_GET_items/analyze-waiting-advanced.js
 ```
