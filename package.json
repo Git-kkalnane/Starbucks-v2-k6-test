@@ -7,7 +7,10 @@
     "postk6": "node postprocess-k6.js k6-loadtest-result.json",
     "postk6n": "node postprocess-k6.js k6-loadtest-result.json",
     "k6:all-item-stress": "k6 run test_code/item/k6-items-all-apis-stress.js --out json=test_code/item/k6-items-all-apis-stress.json",
-    "post:all-item-stress": "node test_code/item/postprocess-k6-items-all-apis-stress.js"
+    "post:all-item-stress": "node test_code/item/postprocess-k6-items-all-apis-stress.js",
+    "item:quickcheck": "node test_code/item/single_api/item-single-api-quickcheck.js",
+    "k6:item-single-all": "node test_code/item/single_api/run-all-item-single-k6.js",
+    "post:item-single-all": "node test_code/item/single_api/postprocess-item-single-api.js"
   },
   "dependencies": {
     "axios": "^1.10.0"
