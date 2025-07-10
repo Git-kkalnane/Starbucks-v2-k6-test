@@ -39,9 +39,10 @@ $ npm install --save-dev @types/k6
 1. 먼저 테스트를 하고 싶은 도메인의 이름을 가진 폴더가 있는지 확인하고 없다면 생성한다.
 2. 폴더 내부에 적절한 이름을 가진 js 파일을 생성한다.
 3. k6 파일의 기본적인 뼈대는 아래와 같다.
+
    ```javascript
-   import http from 'k6/http';
-   import { sleep, check } from 'k6';
+   import http from "k6/http";
+   import { sleep, check } from "k6";
 
    export const options = {
      iterations: 10,
@@ -50,12 +51,13 @@ $ npm install --save-dev @types/k6
    // default exported 함수는 k6에 의해 테스트 스크립트의 진입점으로 선택된다. 이 함수는 테스트 전체 기간 동안 “반복”을 통해 반복적으로 실행된다.
    export default function () {
      // 테스트 대상 엔드포인트에 GET 요청을 보낸다.
-     http.get('https://quickpizza.grafana.com');
+     http.get("https://quickpizza.grafana.com");
 
      // 1초 동안 대기하여 실제 사용 환경을 시뮬레이션한다.
      sleep(1);
    }
    ```
+
 4. 사전에 다른 팀원들이 작성해 둔 테스트 케이스, [공식 문서](https://grafana.com/docs/k6/latest/) 또는 인터넷에 있는 예시를 참고하여 테스트 케이스를 작성한다.
 5. 테스트 케이스 작성이 완료되었을 경우 스프링 부트 애플리케이션을 실행 후 아래의 사용법을 참고하여 테스트를 진행하면 된다.
 
@@ -68,8 +70,8 @@ $ npm install --save-dev @types/k6
 1. Docker Desktop이 현재 실행중인지 확인. 만일 실행중인 상태가 아니라면 실행.
 2. 프로젝트 루트 폴더 (./starbucks-backend-v2)에서 아래와 같이 docker compose 실행
    ```shell
-   docker-compose -f docker-compose.yml up --build 
-   ``` 
+   docker-compose -f docker-compose.yml up --build
+   ```
 3. `docker ps` 명령 또는 Docker Desktop을 통해 스프링 부트 애플리케이션이 정상적으로 실행되었는지 확인
 4. 우리 팀의 Organization에 있는 [monitoring 리포지토리](https://github.com/Git-kkalnane/monitoring)를 pull 받아 마찬가지로 docker compose 실행 (자세한 설명은 해당 리파지토리 참고)
 5. 준비가 완료되었다면 테스트를 수행하며 메트릭 지표들의 변동을 관측하며 병목 지점을 유추하면 된다.
@@ -116,7 +118,7 @@ node ./test_code/cart/postprocess-k6-cart-add-item-result.js
 
 주문하기와 아이템 조회 병렬로 실행
 
-```
+```shell
 // 최소 100번 주문하기와 아이템과 디저트 병렬로 조회
 k6 run --env VUS=100 --env ITERATIONS=100 --out json=./test_code/order_GET_items/k6-order-menu-parallel-result.json ./test_code/order_GET_items/k6-order-menu-parallel.js
 
@@ -124,15 +126,15 @@ node ./test_code/order_GET_items/postprocess-k6-order-menu-parallel-result.js k6
 
 ```
 
-병렬 스레스 테스트
+item 테스트
 
-```
-k6 run scenario_stress/order_GET_items/k6-order-menu-parallel-stress.js --out json=scenario_stress/order_GET_items/k6-order-menu-parallel-stress-result.json
+모든 item API 스트레스 테스트
 
-// analyze-status-vu-error-per-interval.js 사용 코드
-node ./scenario_stress/order_GET_items/analyze-status-vu-error-per-interval.js
+```shell
+npm run k6:all-item-stress  // 테스트 실행
+npm run post:all-item-stress // 결과 보기
 
-
-// analyze-waiting-advanced.js 사용 코드
-node ./scenario_stress/order_GET_items/analyze-waiting-advanced.js
+결과 파일 생성됨
+=> test_code/item/report/k6-items-all-apis-stress.md
+=> test_code/item/report/k6-items-all-apis-stress.csv
 ```
