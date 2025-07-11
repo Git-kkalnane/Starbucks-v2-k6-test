@@ -10,9 +10,14 @@
     "post:all-item-stress": "node test_code/item/postprocess-k6-items-all-apis-stress.js",
     "item:quickcheck": "node test_code/item/single_api/item-single-api-quickcheck.js",
     "k6:item-single-all": "node test_code/item/single_api/run-all-item-single-k6.js",
-    "post:item-single-all": "node test_code/item/single_api/postprocess-item-single-api.js"
+    "post:item-single-all": "node test_code/item/single_api/postprocess-item-single-api.js",
+    "k6:all-store-stress": "k6 run test_code/store/k6-stores-all-apis-stress.js --out json=test_code/store/k6-stores-all-apis-stress.json",
+    "post:all-store-stress": "node test_code/store/postprocess-k6-stores-all-apis-stress.js",
+    "k6:store-single-all": "node test_code/store/single_api/run-all-store-single-k6.js",
+    "post:store-single-all": "node test_code/store/single_api/postprocess-store-single-api.js"
   },
   "dependencies": {
-    "axios": "^1.10.0"
+    "axios": "^1.10.0",
+    "stream-json": "^1.9.1"
   }
 }
