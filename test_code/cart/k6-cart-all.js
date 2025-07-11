@@ -3,34 +3,16 @@ import { check, sleep } from "k6";
 
 export let options = {
   stages: [
-    { duration: "1m", target: 100 },
-    { duration: "1m", target: 150 },
-    { duration: "1m", target: 200 },
-    { duration: "1m", target: 250 },
-    { duration: "1m", target: 300 },
+    { duration: "1m", target: 1000 },
+    { duration: "1m", target: 1500 },
+    { duration: "1m", target: 2000 },
+    { duration: "1m", target: 2500 },
+    { duration: "1m", target: 3000 },
     { duration: "1m", target: 0 },
   ],
 };
 
 const BASE_URL = "http://localhost:8080/api/v1";
-
-const EMAIL = "test1234@gmail.com";
-const PASSWORD = "Test1234!!";
-
-function login() {
-  const payload = JSON.stringify({ email: EMAIL, password: PASSWORD });
-  const res = http.post(`${BASE_URL}/auth/login`, payload, {
-    headers: { "Content-Type": "application/json" },
-  });
-  const token = res.headers["Authorization"];
-  if (!token) {
-    console.error(
-      "[login] No Authorization header in response",
-      JSON.stringify(res.headers)
-    );
-  }
-  return token || null;
-}
 
 function addCartItem(token) {
   const payload = JSON.stringify({
@@ -60,31 +42,39 @@ function addCartItem(token) {
     priceWithOptions: 6300,
   });
   return http.post(`${BASE_URL}/carts/addItem`, payload, {
-    headers: { "Content-Type": "application/json", Authorization: token },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
 function modifyCartItem(token, cartItemId) {
   const payload = JSON.stringify({ cartItemId: cartItemId, changeQuantity: 5 });
   return http.put(`${BASE_URL}/carts/modifyItem`, payload, {
-    headers: { "Content-Type": "application/json", Authorization: token },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
 function deleteCartItems(token, cartItemId) {
   const payload = JSON.stringify({ cartItemId: [cartItemId] });
   return http.request("DELETE", `${BASE_URL}/carts/deleteItem`, payload, {
-    headers: { "Content-Type": "application/json", Authorization: token },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   });
 }
 
 function getCart(token) {
-  // return http.get(`${BASE_URL}/carts`, {
-  //   headers: { "Content-Type": "application/json", Authorization: token },
-  // });
-
   let getCartRes = http.get(`${BASE_URL}/carts`, {
-    headers: { "Content-Type": "application/json", Authorization: token },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     tags: { vu: __VU },
   });
   check(getCartRes, { "cart get 200": (r) => r.status === 200 });
@@ -92,7 +82,6 @@ function getCart(token) {
   sleep(0.3);
 
   let cartJson = getCartRes.json();
-  let currentCartItemId = 1;
   if (
     cartJson &&
     cartJson.result &&
@@ -113,11 +102,9 @@ function getCart(token) {
 }
 
 export default function () {
-  // 1. 로그인 및 토큰 획득
-  // const token = login();
+  // 1. 토큰 설정 (postman을 이용해 획득)
   const token =
-    "Bearer eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiaWF0IjoxNzUyMDQzNTk4LCJleHAiOjE3NTIwNDUzOTh9.BjpwnrxVSmT3n2kptZwuqwPSAkeLmnP9pcIG-0Nu4lnvW3BZh1jT4NKNB0KwBAUxSlyT3lGuyGHOnbihBR3SHg";
-  // check(token, { "로그인 성공": (t) => !!t });
+    "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiaWF0IjoxNzUyMjIyNTExLCJleHAiOjE3NTIyMjQzMTF9.cGtxCDu6FEH_stAkkJk2-Xf6lWw2qBhwhQZ6z78h3kQKVviik_1tI1EkiU7mq2LMwTB1Ss8SLxwqon8-UWs82g";
 
   // 2. 카트 아이템 추가
   const addRes = addCartItem(token);
@@ -129,12 +116,6 @@ export default function () {
 
   const getRes = getCart(token);
 
-  // check(getRes, { "카트 조회": (r) => r.status === 200 });
-
-  // let getCartRes = http.get(`${BASE_URL}/carts`, {
-  //   ...AUTH_HEADER,
-  //   tags: { vu: __VU },
-  // });
   check(getRes, { "cart get 200": (r) => r.status === 200 });
   const firstCartItemId = getRes[0].cartItemId ?? 1;
   console.log(">>firstCartItemId:", firstCartItemId);

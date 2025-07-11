@@ -3,14 +3,17 @@ const path = require("path");
 const readline = require("readline");
 
 // 입력 파일명과 출력 파일명
-const resultPath = process.argv[2] || "k6-cart-all-result.json";
+const resultFile = process.argv[2] || "k6-cart-all-result.json";
+const resultPath = path.join(__dirname, resultFile);
 
 async function processFile() {
   // 통계 변수 선언
   const apiStats = {};
   const stepStats = {};
   let iterations = 0;
-  let vusSum = 0, vusCount = 0, vusMax = 0;
+  let vusSum = 0,
+    vusCount = 0,
+    vusMax = 0;
   let sumIterationDuration = 0;
   const errors = [];
   const statusCounts = {};
@@ -20,10 +23,18 @@ async function processFile() {
   // 시간대별 병목 분석용
   const bucketSizeSec = 60;
   const timeBuckets = {};
-  const timeFormat = (date) => `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  const timeFormat = (date) =>
+    `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
   const parseTime = (t) => {
     if (!t) return null;
-    try { return new Date(t); } catch { return null; }
+    try {
+      return new Date(t);
+    } catch {
+      return null;
+    }
   };
 
   const rl = readline.createInterface({
@@ -108,7 +119,11 @@ async function processFile() {
       sumIterationDuration += obj.data.value;
     }
     // 에러 상세
-    if (obj.metric === "http_req_failed" && obj.data.value > 0 && obj.data.tags) {
+    if (
+      obj.metric === "http_req_failed" &&
+      obj.data.value > 0 &&
+      obj.data.tags
+    ) {
       errors.push({
         url: obj.data.tags.url,
         status: obj.data.tags.status,
@@ -133,7 +148,9 @@ async function processFile() {
   }
 
   function avg(arr) {
-    return arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : 0;
+    return arr.length
+      ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2)
+      : 0;
   }
   function max(arr) {
     return arr.length ? Math.max(...arr).toFixed(2) : 0;
@@ -145,28 +162,42 @@ async function processFile() {
   // === 시간대별 병목 구간 분석 ===
   let prevAvg = null;
   let bottleneckRows = [];
-  Object.keys(timeBuckets).sort((a, b) => a - b).forEach((bucket) => {
-    const rows = timeBuckets[bucket];
-    if (!rows || !rows.length) return;
-    const avgDur = rows.reduce((a, b) => a + b.duration, 0) / rows.length;
-    const maxDur = Math.max(...rows.map(r => r.duration));
-    const minDur = Math.min(...rows.map(r => r.duration));
-    const count = rows.length;
-    const failCount = rows.filter(r => r.status && r.status[0] !== '2').length;
-    const failRate = (failCount / count) * 100;
-    const sorted = rows.map(r => r.duration).sort((a, b) => a - b);
-    const p90 = sorted[Math.floor(0.9 * sorted.length)] || 0;
-    const p95 = sorted[Math.floor(0.95 * sorted.length)] || 0;
-    const p99 = sorted[Math.floor(0.99 * sorted.length)] || 0;
-    const startTime = timeFormat(rows[0].time);
-    const endTime = timeFormat(rows[rows.length - 1].time);
-    let highlight = false;
-    if (prevAvg && avgDur > prevAvg * 1.5 && avgDur > 500) highlight = true;
-    prevAvg = avgDur;
-    bottleneckRows.push({
-      startTime, endTime, avgDur, maxDur, minDur, count, failRate, p90, p95, p99, highlight
+  Object.keys(timeBuckets)
+    .sort((a, b) => a - b)
+    .forEach((bucket) => {
+      const rows = timeBuckets[bucket];
+      if (!rows || !rows.length) return;
+      const avgDur = rows.reduce((a, b) => a + b.duration, 0) / rows.length;
+      const maxDur = Math.max(...rows.map((r) => r.duration));
+      const minDur = Math.min(...rows.map((r) => r.duration));
+      const count = rows.length;
+      const failCount = rows.filter(
+        (r) => r.status && r.status[0] !== "2"
+      ).length;
+      const failRate = (failCount / count) * 100;
+      const sorted = rows.map((r) => r.duration).sort((a, b) => a - b);
+      const p90 = sorted[Math.floor(0.9 * sorted.length)] || 0;
+      const p95 = sorted[Math.floor(0.95 * sorted.length)] || 0;
+      const p99 = sorted[Math.floor(0.99 * sorted.length)] || 0;
+      const startTime = timeFormat(rows[0].time);
+      const endTime = timeFormat(rows[rows.length - 1].time);
+      let highlight = false;
+      if (prevAvg && avgDur > prevAvg * 1.5 && avgDur > 500) highlight = true;
+      prevAvg = avgDur;
+      bottleneckRows.push({
+        startTime,
+        endTime,
+        avgDur,
+        maxDur,
+        minDur,
+        count,
+        failRate,
+        p90,
+        p95,
+        p99,
+        highlight,
+      });
     });
-  });
 
   const reportsDir = path.join(path.dirname(resultPath), "report");
   if (!fs.existsSync(reportsDir)) {
@@ -178,7 +209,9 @@ async function processFile() {
   fs.writeFileSync(
     csvPath,
     csvRows
-      .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .map((row) =>
+        row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")
+      )
       .join("\n")
   );
 
@@ -189,7 +222,9 @@ async function processFile() {
     md += `\n| API URL | 요청수 | 평균 응답시간(ms) | 실패율 | 상태코드 |\n`;
     md += `|---------|--------|-------------------|--------|----------|\n`;
     const codes = Object.keys(stat.codes).join(", ");
-    md += `| ${url} | ${stat.count} | ${(stat.sumDuration / stat.count).toFixed(2)} | ${((stat.failCount / stat.count) * 100).toFixed(1)}% | ${codes} |\n`;
+    md += `| ${url} | ${stat.count} | ${(stat.sumDuration / stat.count).toFixed(
+      2
+    )} | ${((stat.failCount / stat.count) * 100).toFixed(1)}% | ${codes} |\n`;
   });
 
   // 단계별 시간
@@ -216,8 +251,14 @@ async function processFile() {
   md += `\n## [시간대별 병목 구간 분석]\n`;
   md += `| 시작 | 끝 | 평균(ms) | 최대(ms) | 최소(ms) | 요청수 | 실패율(%) | p90 | p95 | p99 |\n`;
   md += `|------|------|----------|----------|----------|-------|------------|------|------|------|\n`;
-  bottleneckRows.forEach(row => {
-    const line = `| ${row.startTime} | ${row.endTime} | ${row.avgDur.toFixed(2)} | ${row.maxDur.toFixed(2)} | ${row.minDur.toFixed(2)} | ${row.count} | ${row.failRate.toFixed(2)} | ${row.p90.toFixed(2)} | ${row.p95.toFixed(2)} | ${row.p99.toFixed(2)} |`;
+  bottleneckRows.forEach((row) => {
+    const line = `| ${row.startTime} | ${row.endTime} | ${row.avgDur.toFixed(
+      2
+    )} | ${row.maxDur.toFixed(2)} | ${row.minDur.toFixed(2)} | ${
+      row.count
+    } | ${row.failRate.toFixed(2)} | ${row.p90.toFixed(2)} | ${row.p95.toFixed(
+      2
+    )} | ${row.p99.toFixed(2)} |`;
     md += row.highlight ? `**${line}**\n` : `${line}\n`;
   });
 

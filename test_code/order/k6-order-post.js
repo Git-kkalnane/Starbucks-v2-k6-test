@@ -4,8 +4,11 @@ import { check, sleep } from "k6";
 export let options = {
   vus: __ENV.VUS ? parseInt(__ENV.VUS) : 1,
   iterations: __ENV.ITERATIONS ? parseInt(__ENV.ITERATIONS) : undefined,
-  duration: __ENV.DURATION ? __ENV.DURATION : undefined
+  duration: __ENV.DURATION ? __ENV.DURATION : undefined,
 };
+
+const accessToken =
+  "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiaWF0IjoxNzUyMjIyNTExLCJleHAiOjE3NTIyMjQzMTF9.cGtxCDu6FEH_stAkkJk2-Xf6lWw2qBhwhQZ6z78h3kQKVviik_1tI1EkiU7mq2LMwTB1Ss8SLxwqon8-UWs82g";
 
 const BASE_URL = "http://localhost:8080/api/v1";
 const LOGIN_URL = `${BASE_URL}/auth/login`;
@@ -50,14 +53,8 @@ function makeOrderPayload(email, idx) {
 }
 
 export default function () {
-  const idx = (__VU - 1) % tokens.length;
-  const { email, accessToken } = tokens[idx];
-  console.log(`사용 계정: ${email}`);
-
-  // 계정별 고유 주문 payload 생성
   const orderPayload = makeOrderPayload(email, idx + 1);
 
-  // 주문 요청 시 accessToken 사용
   const orderParams = {
     headers: {
       "Content-Type": "application/json",
