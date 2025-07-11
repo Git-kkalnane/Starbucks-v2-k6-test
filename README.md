@@ -78,16 +78,22 @@ $ npm install --save-dev @types/k6
 
 ## 사용법
 
-### 인증이 필요한 엔드포인트에 대한 테스트 시 필요한 사전 설정 (K6 명령어 아님)
+### AccessToken 설정
 
-```shell
-// 원하는 수 만큼 계정 생성
-node ./ready/auth/signup-generate-users.js 500
+사용하고자 하는 k6 테스트 상단에 `accessToken` 변수를 설정하면 된다.
+언제 BASE_URL 근처 정의되어 있다. (GET 요청만 있는 경우 accessToken 사용X)
 
-
-// 토큰 생성 시 원하는 계정 수 지정,
-node ./ready/auth/generate-tokens.js 500
+```javascript
+// 예시
+const accessToken =
+  "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiaWF0IjoxNzUyMjIyNTExLCJleHAiOjE3NTIyMjQzMTF9.cGtxCDu6FEH_stAkkJk2-Xf6lWw2qBhwhQZ6z78h3kQKVviik_1tI1EkiU7mq2LMwTB1Ss8SLxwqon8-UWs82g";
+const BASE_URL = "http://localhost:8080/api/v1";
+const ORDER_URL = `${BASE_URL}/orders`;
 ```
+
+### postMan을 이용해서 AccessToken 얻기
+
+https://velog.io/@devel-history/Postman-%EC%82%AC%EC%9A%A9%ED%95%B4%EC%84%9C-AccessToken-%EC%96%BB%EA%B8%B0
 
 ### 테스트 목록
 
@@ -108,11 +114,11 @@ node ./test_code/order/postprocess-k6-order-result.js
 장바구니 아이템 추가 로직
 
 ```shell
-// 500명 유저가 500회 실행
-k6 run --env VUS=500 --env ITERATIONS=500 --out json=./test_code/cart/k6-cart-add-item-result.json ./test_code/cart/k6-cart-add-item.js
+// 장바구니 부하 테스트
+npm run k6:cart-all-stress
 
 // 결과 보기
-node ./test_code/cart/postprocess-k6-cart-add-item-result.js
+npm run post:cart-all-stress
 
 ```
 

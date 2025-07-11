@@ -4,7 +4,7 @@
   "description": "k6 결과를 CSV/Markdown 리포트로 자동 변환하는 postprocess 스크립트",
   "main": "postprocess-k6.js",
   "scripts": {
-    "k6:cart-all-stress": "k6 run test_code/cart/k6-cart-all.js --out json=test_code/cart/k6-cart-all.json",
+    "k6:cart-all-stress": "k6 run test_code/cart/k6-cart-all.js --out json=test_code/cart/k6-cart-all-result.json",
     "post:cart-all-stress": "node test_code/cart/postprocess-k6-cart-all-result.js",
     "k6:all-item-stress": "k6 run test_code/item/k6-items-all-apis-stress.js --out json=test_code/item/k6-items-all-apis-stress.json",
     "post:all-item-stress": "node test_code/item/postprocess-k6-items-all-apis-stress.js",

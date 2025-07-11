@@ -7,6 +7,8 @@ export let options = {
   duration: __ENV.DURATION ? __ENV.DURATION : undefined,
 };
 
+const accessToken =
+  "eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiaWF0IjoxNzUyMjIyNTExLCJleHAiOjE3NTIyMjQzMTF9.cGtxCDu6FEH_stAkkJk2-Xf6lWw2qBhwhQZ6z78h3kQKVviik_1tI1EkiU7mq2LMwTB1Ss8SLxwqon8-UWs82g";
 const BASE_URL = "http://localhost:8080/api/v1";
 const ORDER_URL = `${BASE_URL}/orders`;
 const DRINKS_URL = `${BASE_URL}/items/drinks`;
@@ -50,10 +52,6 @@ function makeOrderPayload(email, idx) {
 }
 
 export default function () {
-  const idx = (__VU - 1) % tokens.length;
-  const { email, accessToken } = tokens[idx];
-
-  // 1. 주문 API는 각 VU가 1번씩 반드시 호출
   const orderPayload = makeOrderPayload(email, idx + 1);
   const orderParams = {
     headers: {
@@ -76,4 +74,3 @@ export default function () {
     sleep(0.1);
   }
 }
-
